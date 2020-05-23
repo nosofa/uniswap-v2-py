@@ -1,5 +1,6 @@
 # UniswapV2 Python
 
+[![Build Status](https://travis-ci.com/asynctomatic/uniswap-v2-py.svg?branch=master)](https://travis-ci.com/asynctomatic/uniswap-v2-py)
 [![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/asynctomatic/uniswap-v2-py/master/LICENSE)
 
 An unofficial Python wrapper for [Uniswap V2](https://uniswap.exchange/).
