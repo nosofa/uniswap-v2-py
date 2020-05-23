@@ -1,0 +1,21 @@
+{
+  "account" : {
+    "address" : "0x09B487E73B4Ca5aEb7B108a9Ebd91d977Aa36648",
+    "private-key" : "fe7f7b941ee8a53d7da1d16e8d4093de26046e2566880e37611265f7c3813f2b"
+  },
+
+  "tokens" : [
+    {
+      "name": "PY-UNI-V2-1",
+      "symbol": "UNI1",
+      "supply": 1000000000,
+      "decimals": 18
+    },
+    {
+      "name": "PY-UNI-V2-2",
+      "symbol": "UNI2",
+      "supply": 2000000000,
+      "decimals": 18
+    }
+  ]
+}
