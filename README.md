@@ -1,12 +1,43 @@
 # UniswapV2 Python
+
+[![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/asynctomatic/uniswap-v2-py/master/LICENSE)
+
 An unofficial Python wrapper for [Uniswap V2](https://uniswap.exchange/).
 
 I am not affiliated with Uniswap, **use at your own risk**.
 
 ## Features
 - Simplistic library capable of interacting with most contract functions and variables.
+- Factory - query for information regarding existing pairs.
+- Router - add/remove liquidity and perform swaps using either ETH or ERC20 tokens.
 
-## Installation
+
+## Getting Started
+This module presents a simplistic interface to Uniswap V2, however I highly recommend you to familiarize yourself
+with the [official documentation](https://uniswap.org/docs/v2) before using ``uniswap-v2-py`` in order to unlock
+its full potential and have a better understanding regarding what is actually going on behind the scenes.
+
+### Installation:
+The module can be installed via pip:
+```
+pip install uniswap-v2-py
+# or
+pip install git+git://github.com/asynctomatic/uniswap-v2-py.git
+```
+
+Alternatively you can clone this repository and install it manually:
+```
+git clone https://github.com/asynctomatic/uniswap-v2-py.git
+cd uniswap-v2-py
+python setup.py install
+```
+
+### Configuration
+The client expects a web3 provider to be passed to it as an argument.
+Alternatively you can set the ``PROVIDER`` environment variable with your provider of choice.
+```
+export PROVIDER=https://mainnet.infura.io/v3/<PROJECT_SECRET>
+```
 
 ## Documentation
 
@@ -144,5 +175,9 @@ to trade through (if, for example, a direct pair does not exist).
 ## Donate
 If you found this library useful and want to support my work feel free to donate.
 
-- BTC:  
-- ETH: 
+- BTC: 36wpJNSZ4mKHh526D5Zo7qsTvWk8eCkzru
+- ETH: 0x1209cEc8CBBa5C67e8A3a154258FEaaCd99D5F20
+
+## Disclaimer
+I am not affiliated with the Uniswap team nor am I responsible for possible losses of funds resulting from
+bugs or incorrect usage of this module, **use at your own risk**.
