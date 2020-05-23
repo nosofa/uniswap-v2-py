@@ -4,18 +4,29 @@
     "private-key" : "fe7f7b941ee8a53d7da1d16e8d4093de26046e2566880e37611265f7c3813f2b"
   },
 
+  "provider" : "https://ropsten.infura.io/v3/8ce5c9d6732945bd9e8baa57c6798e0b",
+
   "tokens" : [
     {
-      "name": "PY-UNI-V2-1",
-      "symbol": "UNI1",
-      "supply": 1000000000,
-      "decimals": 18
+      "name": "PY-TEST-1",
+      "symbol": "PY1",
+      "supply": 100000000000000000000,
+      "decimals": 18,
+      "address": "0xBcf17747684249044AaE48f6d7ADAFE28AC8fBa1"
     },
     {
-      "name": "PY-UNI-V2-2",
-      "symbol": "UNI2",
-      "supply": 2000000000,
-      "decimals": 18
+      "name": "PY-TEST-2",
+      "symbol": "PY2",
+      "supply": 200000000000000000000,
+      "decimals": 18,
+      "address": "0x969C241b86030741063029Fc75B6608C4DC3d186"
+    },
+    {
+      "name": "PY-TEST-3",
+      "symbol": "PY3",
+      "supply": 300000000000000000000,
+      "decimals": 18,
+      "address": "0x98F619409840319A2ebb2C4AB813dc6913dC91E6"
     }
   ]
 }

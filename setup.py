@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="uniswap-v2-py",
+    name="uniswap-v2-py-asymptomatic",  # TODO remove username suffix before PyPI distribution
     version=uniswap.__version__,
     author="Afonso Oliveira",
     author_email="asynctomatic@gmail.com",
@@ -14,6 +14,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/asynctomatic/uniswap-v2-py",
     packages=setuptools.find_packages(),
+    package_data={"uniswap": ["assets/*"]},
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

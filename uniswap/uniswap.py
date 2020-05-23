@@ -127,16 +127,17 @@ class UniswapV2Client(UniswapObject):
 
     FACTORY_ADDRESS = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
     ADDRESS = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
-    ABI = json.load(open(os.path.dirname(os.path.abspath(__file__)) + "/assets/IUniswapV2Factory.json"))["abi"]
+
+    ABI = json.load(open(os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/assets/" + "IUniswapV2Factory.json")))["abi"]
 
     ROUTER_ADDRESS = "0xf164fC0Ec4E93095b804a4795bBe1e041497b92a"
-    ROUTER_ABI = json.load(open(os.path.dirname(os.path.abspath(__file__)) + "/assets/IUniswapV2Router01.json"))["abi"]
+    ROUTER_ABI = json.load(open(os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/assets/" + "IUniswapV2Router01.json")))["abi"]
 
     MAX_APPROVAL_HEX = "0x" + "f" * 64
     MAX_APPROVAL_INT = int(MAX_APPROVAL_HEX, 16)
-    ERC20_ABI = json.load(open(os.path.dirname(os.path.abspath(__file__)) + "/assets/IUniswapV2ERC20.json"))["abi"]
+    ERC20_ABI = json.load(open(os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/assets/" + "IUniswapV2ERC20.json")))["abi"]
 
-    PAIR_ABI = json.load(open(os.path.dirname(os.path.abspath(__file__)) + "/assets/IUniswapV2Pair.json"))["abi"]
+    PAIR_ABI = json.load(open(os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/assets/" + "IUniswapV2Pair.json")))["abi"]
 
     def __init__(self, address, private_key, provider=None):
         super().__init__(address, private_key, provider)
@@ -149,7 +150,7 @@ class UniswapV2Client(UniswapObject):
     # -----------------------------------------------------------
     def _is_approved(self, token, amount=MAX_APPROVAL_INT):
         erc20_contract = self.conn.eth.contract(
-            address=Web3.toChecksumAddress(token), abi=UniswapPair.ABI)
+            address=Web3.toChecksumAddress(token), abi=UniswapV2Client.PAIR_ABI)
         approved_amount = erc20_contract.functions.allowance(self.address, self.router.address).call()
         return approved_amount >= amount
 
@@ -580,36 +581,16 @@ class UniswapV2Client(UniswapObject):
         return pair_contract.functions.kLast().call()
 
 
-class UniswapPair(UniswapObject):
-
-    ABI = json.load(open(os.path.dirname(os.path.abspath(__file__)) + "/assets/IUniswapV2Pair.json"))
-
-    MAX_APPROVAL_HEX = "0x" + "f" * 64
-    MAX_APPROVAL_INT = int(MAX_APPROVAL_HEX, 16)
-    ERC20_ABI = json.load(open(os.path.dirname(os.path.abspath(__file__)) + "/assets/IUniswapV2ERC20.json"))["abi"]
-
-    def __init__(self, pair_address, address, private_key, provider=None):
-        super().__init__(address, private_key, provider)
-        self.contract = self.conn.eth.contract(
-            address=Web3.toChecksumAddress(pair_address), abi=UniswapPair.ABI)
-
-        self.token_0 = None
-        self.token_1 = None
-
-
 def main():
     address = Web3.toChecksumAddress("0x09B487E73B4Ca5aEb7B108a9Ebd91d977Aa36648")
     private_key = "fe7f7b941ee8a53d7da1d16e8d4093de26046e2566880e37611265f7c3813f2b"
     provider = "https://ropsten.infura.io/v3/8ce5c9d6732945bd9e8baa57c6798e0b"
     uniswap = UniswapV2Client(address, private_key, provider)
 
-    uniswap.approve(Web3.toChecksumAddress("0x98A608D3f29EebB496815901fcFe8eCcC32bE54a"))
-    print(uniswap.is_approved("0x98A608D3f29EebB496815901fcFe8eCcC32bE54a", amount=2 * 10 ** 14))
-
-    """num_pairs = uniswap.get_num_pairs()
+    num_pairs = uniswap.get_num_pairs()
     print("Number of pools: {}".format(num_pairs))
 
-    pool_addr = uniswap.get_pair_by_index(42)
+    """pool_addr = uniswap.get_pair_by_index(42)
     pool = UniswapPair(pool_addr, address, private_key, provider)
     token_0 = pool.get_token_0()
     token_1 = pool.get_token_1()
@@ -677,7 +658,7 @@ if __name__ == '__main__':
 
     #pair = UniswapLibrary.pair_for(factory, link_token, weth_token)
     #print(pair == "0x98A608D3f29EebB496815901fcFe8eCcC32bE54a")
-    #main()
+    main()
 
     # Ropsten testnet
     #conn = web3.Web3(web3.Web3.HTTPProvider("HTTP://127.0.0.1:7545"))
