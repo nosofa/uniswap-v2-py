@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import setuptools
 import uniswap
 
@@ -21,4 +22,5 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
+    test_suit="tests"
 )
