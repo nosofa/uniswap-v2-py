@@ -125,7 +125,6 @@ class UniswapObject(object):
 
 class UniswapV2Client(UniswapObject):
 
-    FACTORY_ADDRESS = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
     ADDRESS = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
 
     ABI = json.load(open(os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/assets/" + "IUniswapV2Factory.json")))["abi"]
@@ -239,7 +238,7 @@ class UniswapV2Client(UniswapObject):
         """
         if query_chain:
             return self.router.functions.factory().call()
-        return UniswapV2Client.FACTORY_ADDRESS
+        return UniswapV2Client.ADDRESS
 
     def get_weth_address(self):
         """
@@ -272,7 +271,7 @@ class UniswapV2Client(UniswapObject):
         self.approve(token_a, amount_a)
         self.approve(token_b, amount_b)
         func = self.router.functions.addLiquidity(token_a, token_b, amount_a, amount_b, min_a, min_b, to, deadline)
-        params = self._create_transaction_params()
+        params = self._create_transaction_params(gas=3000000)  # FIXME
         return self._send_transaction(func, params)
 
     def add_liquidity_eth(self, token, amount_token, amount_eth, min_token, min_eth, to, deadline):
@@ -293,7 +292,7 @@ class UniswapV2Client(UniswapObject):
         """
         self.approve(token, amount_token)
         func = self.router.functions.addLiquidityETH(token, amount_token, min_token, min_eth, to, deadline)
-        params = self._create_transaction_params(amount_eth)
+        params = self._create_transaction_params(amount_eth)  # FIXME
         return self._send_transaction(func, params)
 
     def remove_liquidity(self, token_a, token_b, liquidity, min_a, min_b, to, deadline):
@@ -458,7 +457,7 @@ class UniswapV2Client(UniswapObject):
         :param deadline: Unix timestamp after which the transaction will revert.
         :return: Input token amount and all subsequent output token amounts.
         """
-        self.approve(path[0], amount_out)
+        self.approve(path[0], amount_in_max)
         func = self.router.functions.swapTokensForExactETH(amount_out, amount_in_max, path, to, deadline)
         params = self._create_transaction_params()
         return self._send_transaction(func, params)
@@ -482,7 +481,6 @@ class UniswapV2Client(UniswapObject):
         func = self.router.functions.swapExactTokensForETH(amount, min_out, path, to, deadline)
         params = self._create_transaction_params()
         return self._send_transaction(func, params)
-        pass
 
     def swap_eth_for_exact_tokens(self, amount_out, amount_in_max, path, to, deadline):
         """
@@ -580,103 +578,3 @@ class UniswapV2Client(UniswapObject):
             address=Web3.toChecksumAddress(pair), abi=UniswapV2Client.PAIR_ABI)
         return pair_contract.functions.kLast().call()
 
-
-def main():
-    address = Web3.toChecksumAddress("0x09B487E73B4Ca5aEb7B108a9Ebd91d977Aa36648")
-    private_key = "fe7f7b941ee8a53d7da1d16e8d4093de26046e2566880e37611265f7c3813f2b"
-    provider = "https://ropsten.infura.io/v3/8ce5c9d6732945bd9e8baa57c6798e0b"
-    uniswap = UniswapV2Client(address, private_key, provider)
-
-    num_pairs = uniswap.get_num_pairs()
-    print("Number of pools: {}".format(num_pairs))
-
-    """pool_addr = uniswap.get_pair_by_index(42)
-    pool = UniswapPair(pool_addr, address, private_key, provider)
-    token_0 = pool.get_token_0()
-    token_1 = pool.get_token_1()
-    print(token_0)
-    print(token_1)"""
-
-    link_addr = "0x20fE562d797A42Dcb3399062AE9546cd06f63280"
-    link_amount = 1*(10**19)  # 10.0 linkies
-    eth_amount = 2*(10**17)   # 0.2  double digit shitcoin
-
-    """
-    uniswap.approve(link_addr)
-    uniswap.add_liquidity_eth(
-        token=link_addr, amount_token=link_amount, amount_eth=eth_amount, min_token=int(eth_amount/link_amount) + 1,
-        min_eth=int(link_amount/eth_amount) + 1, to=address, deadline=int(time.time()) + 1000)
-    """
-
-
-    """pools = {}
-    for i in range(num_pairs):
-        print("Fetching pool {} of {}...".format(i, num_pairs - 1))
-        pool_addr = uniswap.all_pair_by_index(i)
-        pool = UniswapPair(pool_addr, address, private_key, provider)
-        token_0 = pool.get_token_0()
-        token_1 = pool.get_token_1()
-        pools[str(i)] = {"pair": pool_addr, "token_0": token_0, "token_1": token_1}
-
-    with open("pools.json", "w") as f:
-        f.write(json.dumps(pools))"""
-
-
-    """pool_0_addr = uniswap.all_pair_by_index(0)
-    print("Pool 0: {}".format(pool_0_addr))
-
-    pool_0 = UniswapPair(pool_0_addr, address, private_key, provider)
-    token_0 = pool_0.get_token_0()  # MOO
-    token_1 = pool_0.get_token_1()  # WETH
-
-    reserves = pool_0.get_reserves()
-    ratio_0_to_1 = reserves[1]/reserves[0]
-    ratio_1_to_0 = reserves[0]/reserves[1]
-
-    print("Token 0: {}".format(token_0))
-    print("Token 1: {}".format(token_1))
-    print("Reserves: {}".format(reserves))
-
-    pool_0.approve(token_0)
-    pool_0.approve(token_1)
-
-    amount_to_send = 10**14  # WETH
-    amount_to_recv = int(amount_to_send*ratio_1_to_0)
-    print(amount_to_send)
-    print(amount_to_recv)
-
-    print("C Ratio > {}".format((10**18)*ratio_0_to_1))
-    print("A Ratio > {}".format(UniswapLibrary.get_quote((10**18), reserves[0], reserves[1])))
-    print("Swapping {} WETH for {} MOO".format(amount_to_send/(10**18), amount_to_recv/(10**18)))
-    pool_0.swap(amount_to_recv, amount_to_send, address)"""
-
-
-if __name__ == '__main__':
-    factory = Web3.toChecksumAddress("0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f")
-    link_token = Web3.toChecksumAddress("0x20fe562d797a42dcb3399062ae9546cd06f63280")
-    weth_token = Web3.toChecksumAddress("0xc778417E063141139Fce010982780140Aa0cD5Ab")
-
-    #pair = UniswapLibrary.pair_for(factory, link_token, weth_token)
-    #print(pair == "0x98A608D3f29EebB496815901fcFe8eCcC32bE54a")
-    main()
-
-    # Ropsten testnet
-    #conn = web3.Web3(web3.Web3.HTTPProvider("HTTP://127.0.0.1:7545"))
-
-    #address = web3.Web3.toChecksumAddress("0x09B487E73B4Ca5aEb7B108a9Ebd91d977Aa36648")
-    #private_key = "fe7f7b941ee8a53d7da1d16e8d4093de26046e2566880e37611265f7c3813f2b"
-
-    """factory = conn.eth.contract(abi=ABI, bytecode=BYTECODE)
-    factory.constructor().transact()
-
-    txn = factory.constructor().buildTransaction({
-        'from': address,
-        'nonce': conn.eth.getTransactionCount(address),
-        'gas': 1,
-        'gasPrice': conn.toWei('21', 'gwei')})
-    signed_txn = conn.eth.account.signTransaction(txn, private_key=private_key)
-
-    conn.eth.sendRawTransaction(signed_txn.rawTransaction)"""
-
-    #factory = UniswapFactory(address, private_key, conn)
-    #print(factory.all_pair_by_index(0))

@@ -59,7 +59,7 @@ class BaseTest(unittest.TestCase):
                 to=cls.address,
                 deadline=int(time.time() + 10 ** 3))
             uniswap.conn.eth.waitForTransactionReceipt(weth_tx, timeout=2000)
-            cls.weth_pair = uniswap.get_pair((cls.token_2["address"], uniswap.get_weth_address()))
+            cls.weth_pair = uniswap.get_pair(cls.token_2["address"], uniswap.get_weth_address())
 
 
 class UniswapV2ClientTest(BaseTest):
@@ -84,7 +84,7 @@ class UniswapV2ClientTest(BaseTest):
         self.assertGreaterEqual(num_pairs, 50)
 
     def test_get_pair_by_index(self):
-        pair = self.uniswap.get_pair_by_index(50)
+        pair = self.uniswap.get_pair_by_index(51)
         self.assertEqual(pair, self.token_pair)
 
     def test_get_pair_by_index_not_found(self):
@@ -103,11 +103,11 @@ class UniswapV2ClientTest(BaseTest):
         address = self.uniswap.get_weth_address()
         self.assertEqual(address, self.weth_token)
 
-    def _test_add_liquidity(self):
+    def test_add_liquidity(self):
         amount_a = int(self.token_0["supply"] * 10 ** -3)  # 1/1000 of the total supply of A
         amount_b = int(self.token_1["supply"] * 10 ** -3)  # 1/1000 of the total supply of B
-        min_a = int((amount_b / amount_a) * 1.01)  # allow 1% slippage on B/A
-        min_b = int((amount_a / amount_b) * 1.01)  # allow 1% slippage on A/B
+        min_a = 0  # int((amount_b / amount_a) * 1.01)  # allow 1% slippage on B/A
+        min_b = 0  # int((amount_a / amount_b) * 1.01)  # allow 1% slippage on A/B
         deadline = int(time.time()) + 1000
 
         tx = self.uniswap.add_liquidity(
@@ -117,7 +117,7 @@ class UniswapV2ClientTest(BaseTest):
         self.assertIsNotNone(receipt)
         self.assertTrue(receipt["status"])
 
-    def _test_add_liquidity_eth(self):
+    def test_add_liquidity_eth(self):
         token = self.token_2["address"]
         amount_token = int(self.token_2["supply"] * 10 ** -3)  # 1/1000 of the total supply of the token
         amount_eth = 1  # 1 wei
@@ -166,13 +166,13 @@ class UniswapV2ClientTest(BaseTest):
         self.assertIsNotNone(receipt)
         self.assertTrue(receipt["status"])"""
 
-    def _test_remove_liquidity_with_permit(self):
+    def test_remove_liquidity_with_permit(self):
         pass  # TODO
 
-    def _test_remove_liquidity_eth_with_permit(self):
+    def test_remove_liquidity_eth_with_permit(self):
         pass  # TODO
 
-    def _test_swap_exact_tokens_for_tokens(self):
+    def test_swap_exact_tokens_for_tokens(self):
         amount = int(self.token_0["supply"] * 10 ** -3)
         min_out = int(self.token_1["supply"] * 10 ** -5)
         path = [self.token_0["address"], self.token_1["address"]]
@@ -184,7 +184,7 @@ class UniswapV2ClientTest(BaseTest):
         self.assertIsNotNone(receipt)
         self.assertTrue(receipt["status"])
 
-    def _test_swap_tokens_for_exact_tokens(self):
+    def test_swap_tokens_for_exact_tokens(self):
         amount_out = int(self.token_1["supply"] * 10 ** -5)
         amount_in_max = int(self.token_0["supply"] * 10 ** -3)
         path = [self.token_0["address"], self.token_1["address"]]
@@ -196,10 +196,10 @@ class UniswapV2ClientTest(BaseTest):
         self.assertIsNotNone(receipt)
         self.assertTrue(receipt["status"])
 
-    def _test_swap_exact_eth_for_tokens(self):
-        amount = int(self.token_2["supply"] * 10 ** -2)
-        min_out = 1
-        path = [self.token_2["address"], self.uniswap.get_weth_address()]
+    def test_swap_exact_eth_for_tokens(self):
+        amount = 10  # 10 wei
+        min_out = int(self.token_2["supply"] * 10 ** -5)
+        path = [self.uniswap.get_weth_address(), self.token_2["address"]]
         deadline = int(time.time()) + 1000
 
         tx = self.uniswap.swap_exact_eth_for_tokens(amount, min_out, path, self.address, deadline)
@@ -208,13 +208,10 @@ class UniswapV2ClientTest(BaseTest):
         self.assertIsNotNone(receipt)
         self.assertTrue(receipt["status"])
 
-    def _test_swap_tokens_for_exact_eth(self):
-        amount_out = 2 * 10**15  # 0.02 ether
-        amount_in_max = 5 * 10**17  # 5 linkies
-        path = [
-            Web3.toChecksumAddress("0x20fe562d797a42dcb3399062ae9546cd06f63280"),
-            Web3.toChecksumAddress("0xc778417e063141139fce010982780140aa0cd5ab")
-        ]
+    def test_swap_tokens_for_exact_eth(self):
+        amount_out = 1  # 1 wei
+        amount_in_max = int(self.token_2["supply"] * 10 ** -3)
+        path = [self.token_2["address"], self.uniswap.get_weth_address()]
         deadline = int(time.time()) + 1000
 
         tx = self.uniswap.swap_tokens_for_exact_eth(amount_out, amount_in_max, path, self.address, deadline)
@@ -223,28 +220,21 @@ class UniswapV2ClientTest(BaseTest):
         self.assertIsNotNone(receipt)
         self.assertTrue(receipt["status"])
 
-    def _test_swap_exact_tokens_for_eth(self):
-        amount = 1 * 10**16  # 1 linkies
-        min_out = 1 * 10**15  # 0.05 ether
-        path = [
-            Web3.toChecksumAddress("0x20fe562d797a42dcb3399062ae9546cd06f63280"),
-            Web3.toChecksumAddress("0xc778417e063141139fce010982780140aa0cd5ab")
-        ]
+    def test_swap_exact_tokens_for_eth(self):
+        amount = int(self.token_2["supply"] * 10 ** -3)
+        min_out = 1  # 1 wei
+        path = [self.token_2["address"], self.uniswap.get_weth_address()]
         deadline = int(time.time()) + 1000
-
         tx = self.uniswap.swap_exact_tokens_for_eth(amount, min_out, path, self.address, deadline)
         receipt = self.uniswap.conn.eth.waitForTransactionReceipt(tx, timeout=2000)
 
         self.assertIsNotNone(receipt)
         self.assertTrue(receipt["status"])
 
-    def _test_swap_eth_for_exact_tokens(self):
-        amount_out = 1 * 10**16
-        amount = 1 * 10**15
-        path = [
-            Web3.toChecksumAddress("0xc778417e063141139fce010982780140aa0cd5ab"),
-            Web3.toChecksumAddress("0x20fe562d797a42dcb3399062ae9546cd06f63280")
-        ]
+    def test_swap_eth_for_exact_tokens(self):
+        amount_out = int(self.token_2["supply"] * 10 ** -5)
+        amount = 100  # 100 wei
+        path = [self.uniswap.get_weth_address(), self.token_2["address"]]
         deadline = int(time.time()) + 1000
 
         tx = self.uniswap.swap_eth_for_exact_tokens(amount_out, amount, path, self.address, deadline)
