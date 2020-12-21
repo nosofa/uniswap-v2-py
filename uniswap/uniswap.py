@@ -2,7 +2,7 @@ import os
 import json
 from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput
-
+import re
 
 class UniswapV2Utils(object):
 
@@ -104,7 +104,15 @@ class UniswapObject(object):
         self.private_key = private_key
 
         self.provider = os.environ["PROVIDER"] if not provider else provider
-        self.conn = Web3(Web3.HTTPProvider(self.provider, request_kwargs={"timeout": 60}))
+        if re.match(r'^https*:', self.provider):
+            provider = Web3.HTTPProvider(self.provider, request_kwargs={"timeout": 60})
+        elif re.match(r'^ws*:', self.provider):
+            provider = Web3.WebsocketProvider(self.provider)
+        elif re.match(r'^/', self.provider):
+            provider = Web3.IPCProvider(self.provider)
+        else:
+            raise RuntimeError("Unknown provider type " + self.provider)
+        self.conn = Web3(provider)
         if not self.conn.isConnected():
             raise RuntimeError("Unable to connect to provider at " + self.provider)
 
