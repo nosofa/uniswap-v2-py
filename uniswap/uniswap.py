@@ -129,8 +129,8 @@ class UniswapV2Client(UniswapObject):
 
     ABI = json.load(open(os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/assets/" + "IUniswapV2Factory.json")))["abi"]
 
-    ROUTER_ADDRESS = "0xf164fC0Ec4E93095b804a4795bBe1e041497b92a"
-    ROUTER_ABI = json.load(open(os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/assets/" + "IUniswapV2Router01.json")))["abi"]
+    ROUTER_ADDRESS = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+    ROUTER_ABI = json.load(open(os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/assets/" + "IUniswapV2Router02.json")))["abi"]
 
     MAX_APPROVAL_HEX = "0x" + "f" * 64
     MAX_APPROVAL_INT = int(MAX_APPROVAL_HEX, 16)
