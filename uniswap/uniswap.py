@@ -107,13 +107,13 @@ class UniswapObject(object):
         self.conn = Web3(Web3.HTTPProvider(self.provider, request_kwargs={"timeout": 60}))
         if not self.conn.isConnected():
             raise RuntimeError("Unable to connect to provider at " + self.provider)
-        self.gasPrice = 15
+        self.gasPrice = self.conn.toWei(15, "gwei"),
 
     def _create_transaction_params(self, value=0, gas=1500000):
         return {
             "from": self.address,
             "value": value,
-            'gasPrice': self.conn.toWei(self.gasPrice, "gwei"),
+            'gasPrice': self.gasPrice,
             "gas": gas,
             "nonce": self.conn.eth.getTransactionCount(self.address),
         }
