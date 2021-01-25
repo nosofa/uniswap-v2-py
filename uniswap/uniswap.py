@@ -49,7 +49,7 @@ class UniswapV2Utils(object):
         amount_in_with_fee = amount_in*997
         numerator = amount_in_with_fee*reserve_out
         denominator = reserve_in*1000 + amount_in_with_fee
-        return numerator/denominator
+        return int(numerator/denominator)
 
     @staticmethod
     def get_amount_in(amount_out, reserve_in, reserve_out):
@@ -64,9 +64,9 @@ class UniswapV2Utils(object):
         """
         assert amount_out > 0
         assert reserve_in > 0 and reserve_out > 0
-        numerator = reserve_in*reserve_out*1000
-        denominator = reserve_out - amount_out*997
-        return numerator/denominator + 1
+        numerator = reserve_in*amount_out*1000
+        denominator = (reserve_out - amount_out)*997
+        return int(numerator/denominator + 1)
 
     @staticmethod
     def get_amounts_out(amount_in, path):
@@ -158,6 +158,7 @@ class UniswapV2Client(UniswapObject):
     def _is_approved(self, token, amount=MAX_APPROVAL_INT):
         erc20_contract = self.conn.eth.contract(
             address=Web3.toChecksumAddress(token), abi=UniswapV2Client.PAIR_ABI)
+        print(erc20_contract, token)
         approved_amount = erc20_contract.functions.allowance(self.address, self.router.address).call()
         return approved_amount >= amount
 
@@ -232,7 +233,7 @@ class UniswapV2Client(UniswapObject):
         :return: the created address of the pair.
         """
         func = self.contract.functions.createPair(token_1, token_2)
-        params = self._create_transaction_params()
+        params = self._create_transaction_params(gas=3000000)
         return self._send_transaction(func, params)
 
     # Router Read-Only Functions
@@ -534,7 +535,7 @@ class UniswapV2Client(UniswapObject):
             address=Web3.toChecksumAddress(pair), abi=UniswapV2Client.PAIR_ABI)
         return pair_contract.functions.token1().call()
 
-    def get_reserves(self, pair):
+    def get_reserves(self, token_a, token_b):
         """
         Gets the reserves of token_0 and token_1 used to price trades
         and distribute liquidity as well as the timestamp of the last block
@@ -546,9 +547,14 @@ class UniswapV2Client(UniswapObject):
             - reserve_1 - Amount of token_1 in the contract.
             - liquidity - Unix timestamp of the block containing the last pair interaction.
         """
+        (token0, token1) = UniswapV2Utils.sort_tokens(token_a, token_b)
         pair_contract = self.conn.eth.contract(
-            address=Web3.toChecksumAddress(pair), abi=UniswapV2Client.PAIR_ABI)
-        return pair_contract.functions.getReserves().call()
+            address=Web3.toChecksumAddress(
+                UniswapV2Utils.pair_for(self.get_factory(), token_a, token_b)),
+                abi=UniswapV2Client.PAIR_ABI
+            )
+        reserve = pair_contract.functions.getReserves().call()
+        return reserve if token0 == token_a else [reserve[1], reserve[0], reserve[2]]
 
     def get_price_0_cumulative_last(self, pair):
         """
@@ -586,3 +592,26 @@ class UniswapV2Client(UniswapObject):
             address=Web3.toChecksumAddress(pair), abi=UniswapV2Client.PAIR_ABI)
         return pair_contract.functions.kLast().call()
 
+    def get_amounts_out(self, amount_in, path):
+        assert len(path) >= 2
+        amounts = [amount_in]
+        current_amount = amount_in
+        for p0, p1 in zip(path, path[1:]):
+            r = self.get_reserves(p0, p1)
+            current_amount = UniswapV2Utils.get_amount_out(
+                current_amount, r[0], r[1]
+            )
+            amounts.append(current_amount)
+        return amounts
+
+    def get_amounts_in(self, amount_out, path):
+        assert len(path) >= 2
+        amounts = [amount_out]
+        current_amount = amount_out
+        for p0, p1 in reversed(list(zip(path, path[1:]))):
+            r = self.get_reserves(p0, p1)
+            current_amount = UniswapV2Utils.get_amount_in(
+                current_amount, r[0], r[1]
+            )
+            amounts.insert(0, current_amount)
+        return amounts
