@@ -104,9 +104,9 @@ class UniswapObject(object):
         self.private_key = private_key
 
         self.provider = os.environ["PROVIDER"] if not provider else provider
-        if re.match(r'^https*:', self.provider):
+        if re.match(r'^https?:', self.provider):
             provider = Web3.HTTPProvider(self.provider, request_kwargs={"timeout": 60})
-        elif re.match(r'^ws*:', self.provider):
+        elif re.match(r'^wss?:', self.provider):
             provider = Web3.WebsocketProvider(self.provider)
         elif re.match(r'^/', self.provider):
             provider = Web3.IPCProvider(self.provider)
