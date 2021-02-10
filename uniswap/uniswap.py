@@ -302,7 +302,7 @@ class UniswapV2Client(UniswapObject):
         """
         self.approve(token, amount_token)
         func = self.router.functions.addLiquidityETH(token, amount_token, min_token, min_eth, to, deadline)
-        params = self._create_transaction_params(amount_eth)  # FIXME
+        params = self._create_transaction_params(amount_eth, gas=3000000)  # FIXME
         return self._send_transaction(func, params)
 
     def remove_liquidity(self, token_a, token_b, liquidity, min_a, min_b, to, deadline):
