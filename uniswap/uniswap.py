@@ -104,9 +104,9 @@ class UniswapObject(object):
         self.private_key = private_key
 
         self.provider = os.environ["PROVIDER"] if not provider else provider
-        if re.match(r'^https*:', self.provider):
+        if re.match(r'^https?:', self.provider):
             provider = Web3.HTTPProvider(self.provider, request_kwargs={"timeout": 60})
-        elif re.match(r'^ws*:', self.provider):
+        elif re.match(r'^wss?:', self.provider):
             provider = Web3.WebsocketProvider(self.provider)
         elif re.match(r'^/', self.provider):
             provider = Web3.IPCProvider(self.provider)
@@ -115,7 +115,7 @@ class UniswapObject(object):
         self.conn = Web3(provider)
         if not self.conn.isConnected():
             raise RuntimeError("Unable to connect to provider at " + self.provider)
-        self.gasPrice = self.conn.toWei(15, "gwei"),
+        self.gasPrice = self.conn.toWei(15, "gwei")
 
     def _create_transaction_params(self, value=0, gas=1500000):
         return {
@@ -302,7 +302,7 @@ class UniswapV2Client(UniswapObject):
         """
         self.approve(token, amount_token)
         func = self.router.functions.addLiquidityETH(token, amount_token, min_token, min_eth, to, deadline)
-        params = self._create_transaction_params(amount_eth)  # FIXME
+        params = self._create_transaction_params(amount_eth, gas=3000000)  # FIXME
         return self._send_transaction(func, params)
 
     def remove_liquidity(self, token_a, token_b, liquidity, min_a, min_b, to, deadline):

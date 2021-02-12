@@ -88,7 +88,7 @@ class UniswapV2ClientTest(BaseTest):
         self.assertEqual(pair, self.token_pair)
 
     def test_get_pair_by_index_not_found(self):
-        pair = self.uniswap.get_pair_by_index(9999)
+        pair = self.uniswap.get_pair_by_index(99999)
         self.assertEqual(pair, "0x0000000000000000000000000000000000000000")
 
     def test_get_fee(self):
