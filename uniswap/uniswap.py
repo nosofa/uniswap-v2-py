@@ -16,10 +16,24 @@ class UniswapV2Utils(object):
         return token_0, token_1
 
     @staticmethod
+    def pair_code_hash(factory):
+        if factory == "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f":   # uniswap V2
+            return "96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f"
+        elif factory == "0xc35DADB65012eC5796536bD9864eD8773aBc74C4" or factory == "0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac": # sushiswap testnet + mainnet
+            return "e18a34eb0e04b04f7a0ac29a6e80748dca96319b42c54d679cb821dca90c6303"
+        elif factory == "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32": # quickswap
+            return "96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f"
+        elif factory == "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73": # pancakeswap
+            return "d0d4c4cd0848c93cb4fd1f498d7013ee6bfb25783ea21593d5834f5d250ece66"
+        else:
+            raise("Please provide the factory of a supported Uniswap V2-like DEX for a valid pair code hash.")
+
+
+    @staticmethod
     def pair_for(factory, token_a, token_b):
         prefix = Web3.toHex(hexstr="ff")
         encoded_tokens = Web3.solidityKeccak(["address", "address"], UniswapV2Utils.sort_tokens(token_a, token_b))
-        suffix = Web3.toHex(hexstr="96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f")
+        suffix = Web3.toHex(hexstr=UniswapV2Utils.pair_code_hash(factory))
         raw = Web3.solidityKeccak(["bytes", "address", "bytes", "bytes"], [prefix, factory, encoded_tokens, suffix])
         return Web3.toChecksumAddress(Web3.toHex(raw)[-40:])
 
@@ -99,7 +113,9 @@ class UniswapV2Utils(object):
 
 class UniswapObject(object):
 
-    def __init__(self, address, private_key, provider=None):
+    def __init__(self, dex_factory, dex_router, address, private_key, provider=None):
+        self.dex_factory = dex_factory
+        self.dex_router = dex_router
         self.address = Web3.toChecksumAddress(address)
         self.private_key = private_key
 
@@ -134,12 +150,11 @@ class UniswapObject(object):
 
 class UniswapV2Client(UniswapObject):
 
-    ADDRESS = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
+    file_ABI = os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/assets/" + "IUniswapV2Factory.json")
+    ABI = json.load(open(file_ABI))["abi"]
 
-    ABI = json.load(open(os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/assets/" + "IUniswapV2Factory.json")))["abi"]
-
-    ROUTER_ADDRESS = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
-    ROUTER_ABI = json.load(open(os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/assets/" + "IUniswapV2Router02.json")))["abi"]
+    file_router = os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/assets/" + "IUniswapV2Router02.json")
+    ROUTER_ABI = json.load(open(file_router))["abi"]
 
     MAX_APPROVAL_HEX = "0x" + "f" * 64
     MAX_APPROVAL_INT = int(MAX_APPROVAL_HEX, 16)
@@ -147,12 +162,12 @@ class UniswapV2Client(UniswapObject):
 
     PAIR_ABI = json.load(open(os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/assets/" + "IUniswapV2Pair.json")))["abi"]
 
-    def __init__(self, address, private_key, provider=None):
-        super().__init__(address, private_key, provider)
+    def __init__(self, dex_factory, dex_router, address, private_key, provider=None):
+        super().__init__(dex_factory, dex_router, address, private_key, provider)
         self.contract = self.conn.eth.contract(
-            address=Web3.toChecksumAddress(UniswapV2Client.ADDRESS), abi=UniswapV2Client.ABI)
+            address=Web3.toChecksumAddress(self.dex_factory), abi=UniswapV2Client.ABI)
         self.router = self.conn.eth.contract(
-            address=Web3.toChecksumAddress(UniswapV2Client.ROUTER_ADDRESS), abi=UniswapV2Client.ROUTER_ABI)
+            address=Web3.toChecksumAddress(self.dex_router), abi=UniswapV2Client.ROUTER_ABI)
 
     # Utilities
     # -----------------------------------------------------------
@@ -248,7 +263,7 @@ class UniswapV2Client(UniswapObject):
         """
         if query_chain:
             return self.router.functions.factory().call()
-        return UniswapV2Client.ADDRESS
+        return self.dex_factory
 
     def get_weth_address(self):
         """
@@ -549,9 +564,10 @@ class UniswapV2Client(UniswapObject):
             - liquidity - Unix timestamp of the block containing the last pair interaction.
         """
         (token0, token1) = UniswapV2Utils.sort_tokens(token_a, token_b)
+        factory = self.get_factory()
         pair_contract = self.conn.eth.contract(
             address=Web3.toChecksumAddress(
-                UniswapV2Utils.pair_for(self.get_factory(), token_a, token_b)),
+                UniswapV2Utils.pair_for(factory, token_a, token_b)),
                 abi=UniswapV2Client.PAIR_ABI
             )
         reserve = pair_contract.functions.getReserves().call()
