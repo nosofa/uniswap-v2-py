@@ -44,14 +44,14 @@ export PROVIDER=https://mainnet.infura.io/v3/<PROJECT_SECRET>
 
 ```python
 from uniswap.uniswap import UniswapV2Client
-client = UniswapV2Client(address, private_key)
+client = UniswapV2Client(factory, router, address, private_key)
 ```
 
 ```python
 from uniswap.uniswap import UniswapV2Client
 
 my_provider = "https://mainnet.infura.io/v3/<PROJECT_SECRET>"
-client = UniswapV2Client(address, private_key, provider=my_provider)
+client = UniswapV2Client(factory, router, address, private_key, provider=my_provider)
 ```
 
 #### Factory Read-Only Methods
